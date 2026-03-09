@@ -13,6 +13,25 @@ async function callClaude(messages, systemPrompt = "") {
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+const TAG_COLORS = [
+  { bg: "#EEF2FF", color: "#4F46E5", border: "#C7D2FE" }, // indigo
+  { bg: "#FFF1F2", color: "#E11D48", border: "#FECDD3" }, // rose
+  { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" }, // emerald
+  { bg: "#FFF7ED", color: "#EA580C", border: "#FED7AA" }, // orange
+  { bg: "#F5F3FF", color: "#7C3AED", border: "#DDD6FE" }, // violet
+  { bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" }, // amber
+  { bg: "#F0F9FF", color: "#0284C7", border: "#BAE6FD" }, // sky
+  { bg: "#FDF2F8", color: "#DB2777", border: "#FBCFE8" }, // pink
+  { bg: "#F0FDF4", color: "#16A34A", border: "#BBF7D0" }, // green
+  { bg: "#EFF6FF", color: "#2563EB", border: "#BFDBFE" }, // blue
+];
+
+const getTagColor = (label) => {
+  let hash = 0;
+  for (let i = 0; i < label.length; i++) hash = label.charCodeAt(i) + ((hash << 5) - hash);
+  return TAG_COLORS[Math.abs(hash) % TAG_COLORS.length];
+};
+
 const Icon = ({ name, size = 16 }) => {
   const icons = {
     plus: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 5v14M5 12h14" />,
@@ -32,21 +51,24 @@ const Icon = ({ name, size = 16 }) => {
   );
 };
 
-const TagPill = ({ label }) => (
-  <span style={{
-    display: "inline-flex", alignItems: "center", gap: 4,
-    background: "rgba(234,179,8,0.12)", color: "#EAB308",
-    border: "1px solid rgba(234,179,8,0.25)", borderRadius: 4,
-    fontSize: 11, fontWeight: 600, padding: "2px 8px",
-    letterSpacing: "0.04em", textTransform: "uppercase",
-  }}>{label}</span>
-);
+const TagPill = ({ label }) => {
+  const c = getTagColor(label);
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      background: c.bg, color: c.color,
+      border: `1px solid ${c.border}`, borderRadius: 12,
+      fontSize: 11, fontWeight: 600, padding: "2px 10px",
+      letterSpacing: "0.02em",
+    }}>{label}</span>
+  );
+};
 
 const LoadingDots = () => (
   <span style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
     {[0,1,2].map(i => (
       <span key={i} style={{
-        width: 5, height: 5, borderRadius: "50%", background: "#EAB308",
+        width: 5, height: 5, borderRadius: "50%", background: "#6366F1",
         animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
       }} />
     ))}
@@ -158,62 +180,62 @@ export default function KnowledgeOS() {
   const formatDate = (iso) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   const S = {
-    app: { minHeight: "100vh", background: "#0D0D0D", color: "#E8E0D5", fontFamily: "'Georgia', 'Times New Roman', serif", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" },
-    header: { borderBottom: "1px solid #1E1E1E", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(13,13,13,0.95)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100, flexShrink: 0 },
-    logo: { display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em", color: "#E8E0D5" },
-    logoIcon: { width: 28, height: 28, borderRadius: 6, background: "linear-gradient(135deg, #EAB308, #CA8A04)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0D0D0D" },
-    badge: { fontSize: 10, background: "rgba(234,179,8,0.15)", color: "#EAB308", border: "1px solid rgba(234,179,8,0.3)", borderRadius: 4, padding: "2px 7px", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "'Courier New', monospace", fontWeight: 700 },
+    app: { minHeight: "100vh", background: "#F9FAFB", color: "#1F2937", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" },
+    header: { borderBottom: "1px solid #E5E7EB", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 100, flexShrink: 0 },
+    logo: { display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em", color: "#111827" },
+    logoIcon: { width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
+    badge: { fontSize: 10, background: "#EEF2FF", color: "#6366F1", border: "1px solid #C7D2FE", borderRadius: 12, padding: "2px 8px", letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 700 },
     body: { display: "flex", flex: 1, minHeight: 0, position: "relative", zIndex: 1 },
-    sidebar: { width: sidebarOpen ? 260 : 0, minWidth: sidebarOpen ? 260 : 0, borderRight: "1px solid #1A1A1A", background: "#0D0D0D", display: "flex", flexDirection: "column", transition: "width 0.25s ease, min-width 0.25s ease", overflow: "hidden", flexShrink: 0 },
-    sidebarHeader: { padding: "16px 16px 12px", borderBottom: "1px solid #1A1A1A", display: "flex", alignItems: "center", justifyContent: "space-between" },
-    sidebarTitle: { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "#555", fontFamily: "'Courier New', monospace" },
+    sidebar: { width: sidebarOpen ? 260 : 0, minWidth: sidebarOpen ? 260 : 0, borderRight: "1px solid #E5E7EB", background: "#FFFFFF", display: "flex", flexDirection: "column", transition: "width 0.25s ease, min-width 0.25s ease", overflow: "hidden", flexShrink: 0 },
+    sidebarHeader: { padding: "16px 16px 12px", borderBottom: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "space-between" },
+    sidebarTitle: { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9CA3AF", fontWeight: 600 },
     navList: { flex: 1, overflowY: "auto", padding: "8px 0" },
-    navItem: (active) => ({ padding: "10px 16px", cursor: "pointer", background: active ? "rgba(234,179,8,0.06)" : "transparent", borderLeft: active ? "2px solid #EAB308" : "2px solid transparent", display: "flex", flexDirection: "column", gap: 4, transition: "all 0.15s" }),
-    navItemTitle: (active) => ({ fontSize: 13, fontWeight: active ? 600 : 400, color: active ? "#E8E0D5" : "#888", lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }),
-    navItemMeta: { fontSize: 10, color: "#444", fontFamily: "'Courier New', monospace" },
+    navItem: (active) => ({ padding: "10px 16px", cursor: "pointer", background: active ? "#EEF2FF" : "transparent", borderLeft: active ? "2px solid #6366F1" : "2px solid transparent", display: "flex", flexDirection: "column", gap: 4, transition: "all 0.15s" }),
+    navItemTitle: (active) => ({ fontSize: 13, fontWeight: active ? 600 : 400, color: active ? "#1F2937" : "#6B7280", lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }),
+    navItemMeta: { fontSize: 10, color: "#9CA3AF" },
     main: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0 },
-    toolbar: { padding: "12px 24px", borderBottom: "1px solid #1A1A1A", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 },
-    toolBtn: (active) => ({ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12, fontFamily: "'Courier New', monospace", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", background: active ? "#EAB308" : "rgba(255,255,255,0.04)", color: active ? "#0D0D0D" : "#666", transition: "all 0.15s" }),
+    toolbar: { padding: "12px 24px", borderBottom: "1px solid #E5E7EB", display: "flex", alignItems: "center", gap: 8, flexShrink: 0, background: "#FFFFFF" },
+    toolBtn: (active) => ({ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, letterSpacing: "0.02em", background: active ? "#6366F1" : "#F3F4F6", color: active ? "#FFFFFF" : "#6B7280", transition: "all 0.15s" }),
     content: { flex: 1, overflowY: "auto", padding: 32, maxWidth: 780, width: "100%" },
-    noteTitle: { fontSize: 26, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.2, marginBottom: 12, color: "#E8E0D5" },
-    noteBody: { fontSize: 15, lineHeight: 1.8, color: "#B0A898", marginBottom: 24 },
-    summaryBox: { background: "rgba(234,179,8,0.05)", border: "1px solid rgba(234,179,8,0.15)", borderRadius: 8, padding: "16px 20px", marginBottom: 24 },
-    summaryLabel: { fontSize: 10, color: "#EAB308", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'Courier New', monospace", marginBottom: 8, fontWeight: 700 },
-    summaryText: { fontSize: 14, color: "#C8BFB0", lineHeight: 1.6, fontStyle: "italic" },
-    input: { width: "100%", background: "transparent", border: "none", borderBottom: "1px solid #222", color: "#E8E0D5", fontSize: 22, fontFamily: "'Georgia', serif", fontWeight: 700, padding: "8px 0 12px", outline: "none", letterSpacing: "-0.02em" },
-    textarea: { width: "100%", background: "rgba(255,255,255,0.02)", border: "1px solid #1E1E1E", borderRadius: 8, color: "#C8BFB0", fontSize: 14, fontFamily: "'Georgia', serif", padding: "16px", outline: "none", resize: "vertical", lineHeight: 1.8, minHeight: 200 },
-    primaryBtn: { display: "flex", alignItems: "center", gap: 8, background: "#EAB308", color: "#0D0D0D", border: "none", borderRadius: 7, padding: "11px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Courier New', monospace", letterSpacing: "0.04em", textTransform: "uppercase" },
-    ghostBtn: { display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", color: "#666", border: "1px solid #222", borderRadius: 7, padding: "11px 18px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Courier New', monospace", letterSpacing: "0.04em", textTransform: "uppercase" },
-    chatArea: { flex: 1, overflowY: "auto", padding: "24px 32px", display: "flex", flexDirection: "column", gap: 16 },
-    chatBubble: (role) => ({ maxWidth: "72%", alignSelf: role === "user" ? "flex-end" : "flex-start", background: role === "user" ? "rgba(234,179,8,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${role === "user" ? "rgba(234,179,8,0.2)" : "#1E1E1E"}`, borderRadius: role === "user" ? "12px 12px 3px 12px" : "12px 12px 12px 3px", padding: "12px 16px", fontSize: 14, lineHeight: 1.7, color: role === "user" ? "#E8E0D5" : "#B0A898" }),
-    chatInputWrap: { display: "flex", gap: 10, padding: "16px 32px", borderTop: "1px solid #1A1A1A", background: "rgba(13,13,13,0.9)", flexShrink: 0 },
-    chatField: { flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid #222", borderRadius: 8, color: "#E8E0D5", fontSize: 14, fontFamily: "'Georgia', serif", padding: "11px 16px", outline: "none", resize: "none" },
-    sendBtn: { background: "#EAB308", color: "#0D0D0D", border: "none", borderRadius: 8, width: 44, height: 44, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "flex-end" },
-    searchBar: { display: "flex", gap: 10, marginBottom: 28, background: "rgba(255,255,255,0.03)", border: "1px solid #1E1E1E", borderRadius: 10, padding: "4px 4px 4px 16px", alignItems: "center" },
-    searchInput: { flex: 1, background: "transparent", border: "none", color: "#E8E0D5", fontSize: 15, fontFamily: "'Georgia', serif", outline: "none", padding: "8px 0" },
-    searchBtn: { background: "#EAB308", color: "#0D0D0D", border: "none", borderRadius: 7, padding: "9px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, fontFamily: "'Courier New', monospace", textTransform: "uppercase" },
-    resultCard: { border: "1px solid #1A1A1A", borderRadius: 10, padding: "18px 20px", marginBottom: 14, cursor: "pointer", background: "rgba(255,255,255,0.02)" },
-    emptyState: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "#333", padding: "60px 0", textAlign: "center" },
+    noteTitle: { fontSize: 26, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.2, marginBottom: 12, color: "#111827" },
+    noteBody: { fontSize: 15, lineHeight: 1.8, color: "#4B5563", marginBottom: 24 },
+    summaryBox: { background: "#EEF2FF", border: "1px solid #C7D2FE", borderRadius: 10, padding: "16px 20px", marginBottom: 24 },
+    summaryLabel: { fontSize: 10, color: "#6366F1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8, fontWeight: 700 },
+    summaryText: { fontSize: 14, color: "#4338CA", lineHeight: 1.6, fontStyle: "italic" },
+    input: { width: "100%", background: "transparent", border: "none", borderBottom: "2px solid #E5E7EB", color: "#111827", fontSize: 22, fontWeight: 700, padding: "8px 0 12px", outline: "none", letterSpacing: "-0.02em" },
+    textarea: { width: "100%", background: "#FFFFFF", border: "1px solid #E5E7EB", borderRadius: 10, color: "#374151", fontSize: 14, padding: "16px", outline: "none", resize: "vertical", lineHeight: 1.8, minHeight: 200 },
+    primaryBtn: { display: "flex", alignItems: "center", gap: 8, background: "#6366F1", color: "#FFFFFF", border: "none", borderRadius: 8, padding: "11px 22px", fontSize: 13, fontWeight: 600, cursor: "pointer", letterSpacing: "0.02em" },
+    ghostBtn: { display: "flex", alignItems: "center", gap: 8, background: "#F3F4F6", color: "#6B7280", border: "1px solid #E5E7EB", borderRadius: 8, padding: "11px 18px", fontSize: 12, fontWeight: 600, cursor: "pointer" },
+    chatArea: { flex: 1, overflowY: "auto", padding: "24px 32px", display: "flex", flexDirection: "column", gap: 16, background: "#F9FAFB" },
+    chatBubble: (role) => ({ maxWidth: "72%", alignSelf: role === "user" ? "flex-end" : "flex-start", background: role === "user" ? "#6366F1" : "#FFFFFF", border: `1px solid ${role === "user" ? "#6366F1" : "#E5E7EB"}`, borderRadius: role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px", padding: "12px 16px", fontSize: 14, lineHeight: 1.7, color: role === "user" ? "#FFFFFF" : "#374151", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }),
+    chatInputWrap: { display: "flex", gap: 10, padding: "16px 32px", borderTop: "1px solid #E5E7EB", background: "#FFFFFF", flexShrink: 0 },
+    chatField: { flex: 1, background: "#F3F4F6", border: "1px solid #E5E7EB", borderRadius: 10, color: "#111827", fontSize: 14, padding: "11px 16px", outline: "none", resize: "none" },
+    sendBtn: { background: "#6366F1", color: "#FFFFFF", border: "none", borderRadius: 10, width: 44, height: 44, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, alignSelf: "flex-end" },
+    searchBar: { display: "flex", gap: 10, marginBottom: 28, background: "#FFFFFF", border: "1px solid #E5E7EB", borderRadius: 12, padding: "4px 4px 4px 16px", alignItems: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+    searchInput: { flex: 1, background: "transparent", border: "none", color: "#111827", fontSize: 15, outline: "none", padding: "8px 0" },
+    searchBtn: { background: "#6366F1", color: "#FFFFFF", border: "none", borderRadius: 8, padding: "9px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600 },
+    resultCard: { border: "1px solid #E5E7EB", borderRadius: 12, padding: "18px 20px", marginBottom: 14, cursor: "pointer", background: "#FFFFFF", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", transition: "box-shadow 0.15s" },
+    emptyState: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "#9CA3AF", padding: "60px 0", textAlign: "center" },
   };
 
   const renderNoteView = () => {
     const note = selectedNote;
     if (!note) return (
       <div style={S.emptyState}>
-        <div style={{ color: "#2A2A2A" }}><Icon name="note" size={48} /></div>
-        <div style={{ fontSize: 15, color: "#444" }}>Select a note or create a new one</div>
+        <div style={{ color: "#D1D5DB" }}><Icon name="note" size={48} /></div>
+        <div style={{ fontSize: 15, color: "#9CA3AF" }}>Select a note or create a new one</div>
         <button style={S.primaryBtn} onClick={() => setView("new")}><Icon name="plus" size={14} /> New Note</button>
       </div>
     );
     return (
       <>
-        <div style={{ marginBottom: 24, borderBottom: "1px solid #1A1A1A", paddingBottom: 20 }}>
+        <div style={{ marginBottom: 24, borderBottom: "1px solid #F3F4F6", paddingBottom: 20 }}>
           <div style={S.noteTitle}>{note.title}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 11, color: "#444", fontFamily: "monospace" }}>{formatDate(note.createdAt)}</span>
+            <span style={{ fontSize: 11, color: "#9CA3AF" }}>{formatDate(note.createdAt)}</span>
             {note.tags?.map(t => <TagPill key={t} label={t} />)}
             <button style={{ ...S.ghostBtn, padding: "5px 10px", fontSize: 11 }} onClick={() => summarizeNote(note)}><Icon name="summary" size={12} /> Re-summarize</button>
-            <button style={{ ...S.ghostBtn, padding: "5px 10px", fontSize: 11, color: "#C53030", borderColor: "#2D1717" }} onClick={() => deleteNote(note.id)}><Icon name="trash" size={12} /></button>
+            <button style={{ ...S.ghostBtn, padding: "5px 10px", fontSize: 11, color: "#EF4444", borderColor: "#FECACA", background: "#FEF2F2" }} onClick={() => deleteNote(note.id)}><Icon name="trash" size={12} /></button>
           </div>
         </div>
         {note.summary && (
@@ -229,16 +251,16 @@ export default function KnowledgeOS() {
 
   return (
     <div style={S.app}>
-      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #222; border-radius: 4px; } @keyframes pulse { 0%,100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } } button:disabled { opacity: 0.4; cursor: not-allowed; } textarea::placeholder, input::placeholder { color: #333; }`}</style>
+      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; } @keyframes pulse { 0%,100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } } button:disabled { opacity: 0.4; cursor: not-allowed; } textarea::placeholder, input::placeholder { color: #9CA3AF; } input:focus { border-color: #6366F1; } textarea:focus { border-color: #6366F1; }`}</style>
 
       <header style={S.header}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button onClick={() => setSidebarOpen(v => !v)} style={{ background: "none", border: "none", color: "#444", cursor: "pointer", padding: 4 }}><Icon name="summary" size={18} /></button>
+          <button onClick={() => setSidebarOpen(v => !v)} style={{ background: "none", border: "none", color: "#9CA3AF", cursor: "pointer", padding: 4 }}><Icon name="summary" size={18} /></button>
           <div style={S.logo}><div style={S.logoIcon}><Icon name="brain" size={14} /></div> KnowledgeOS</div>
           <span style={S.badge}>AI-Powered</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 11, color: "#444", fontFamily: "monospace" }}>{notes.length} notes</span>
+          <span style={{ fontSize: 11, color: "#9CA3AF" }}>{notes.length} notes</span>
           <button style={S.primaryBtn} onClick={() => { setView("new"); setSelectedNote(null); }}><Icon name="plus" size={14} /> New Note</button>
         </div>
       </header>
@@ -267,7 +289,7 @@ export default function KnowledgeOS() {
             <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
               <div style={S.chatArea}>
                 {chatMessages.map((m, i) => <div key={i} style={S.chatBubble(m.role)}>{m.content}</div>)}
-                {isChatLoading && <div style={{ ...S.chatBubble("assistant"), color: "#EAB308" }}><LoadingDots /></div>}
+                {isChatLoading && <div style={{ ...S.chatBubble("assistant"), color: "#6366F1" }}><LoadingDots /></div>}
                 <div ref={chatBottomRef} />
               </div>
               <div style={S.chatInputWrap}>
@@ -278,7 +300,7 @@ export default function KnowledgeOS() {
           ) : view === "search" ? (
             <div style={{ flex: 1, overflowY: "auto" }}>
               <div style={S.content}>
-                <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 20, color: "#E8E0D5" }}>Find in your knowledge</h2>
+                <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 20, color: "#111827" }}>Find in your knowledge</h2>
                 <div style={S.searchBar}>
                   <Icon name="search" size={16} />
                   <input style={S.searchInput} placeholder="Search by concept..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === "Enter" && searchNotes()} />
@@ -286,17 +308,17 @@ export default function KnowledgeOS() {
                 </div>
                 {searchResults.map(n => (
                   <div key={n.id} style={S.resultCard} onClick={() => { setSelectedNote(n); setView("notes"); }}>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: "#E8E0D5", marginBottom: 8 }}>{n.title}</div>
-                    <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 10 }}>{n.content.slice(0, 140)}...</div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: "#111827", marginBottom: 8 }}>{n.title}</div>
+                    <div style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6, marginBottom: 10 }}>{n.content.slice(0, 140)}...</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{n.tags?.map(t => <TagPill key={t} label={t} />)}</div>
                   </div>
                 ))}
                 {!searchQuery && (
                   <div>
-                    <div style={{ fontSize: 11, color: "#444", fontFamily: "monospace", textTransform: "uppercase", marginBottom: 16 }}>All Notes ({notes.length})</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", marginBottom: 16, fontWeight: 600 }}>All Notes ({notes.length})</div>
                     {notes.map(n => (
                       <div key={n.id} style={S.resultCard} onClick={() => { setSelectedNote(n); setView("notes"); }}>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: "#E8E0D5", marginBottom: 6 }}>{n.title}</div>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: "#111827", marginBottom: 6 }}>{n.title}</div>
                         <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>{n.tags?.map(t => <TagPill key={t} label={t} />)}</div>
                       </div>
                     ))}
@@ -308,14 +330,14 @@ export default function KnowledgeOS() {
             <div style={{ flex: 1, overflowY: "auto" }}>
               <div style={S.content}>
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: 11, color: "#555", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "monospace", marginBottom: 8 }}>Title</div>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8, fontWeight: 600 }}>Title</div>
                   <input style={S.input} placeholder="Give your note a title..." value={newTitle} onChange={e => setNewTitle(e.target.value)} />
                 </div>
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: 11, color: "#555", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "monospace", marginBottom: 8 }}>Content</div>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8, fontWeight: 600 }}>Content</div>
                   <textarea style={S.textarea} placeholder="Paste an article, write thoughts, or capture anything worth knowing..." value={newContent} onChange={e => setNewContent(e.target.value)} rows={10} />
                 </div>
-                {isProcessing && <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, color: "#EAB308", fontSize: 12, fontFamily: "monospace" }}><LoadingDots /> {aiStatus}</div>}
+                {isProcessing && <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, color: "#6366F1", fontSize: 12 }}><LoadingDots /> {aiStatus}</div>}
                 <div style={{ display: "flex", gap: 10 }}>
                   <button style={S.primaryBtn} onClick={saveNote} disabled={isProcessing || !newTitle || !newContent}><Icon name="spark" size={14} /> {isProcessing ? "Processing..." : "Save with AI"}</button>
                   <button style={S.ghostBtn} onClick={() => setView("notes")}>Cancel</button>
